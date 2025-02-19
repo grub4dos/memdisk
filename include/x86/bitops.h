@@ -1,7 +1,6 @@
 /* ----------------------------------------------------------------------- *
  *
- *   Copyright 2007-2009 H. Peter Anvin - All Rights Reserved
- *   Copyright 2009 Intel Corporation; author: H. Peter Anvin
+ *   Copyright 2010-2011 Intel Corporation; author: H. Peter Anvin
  *
  *   Permission is hereby granted, free of charge, to any person
  *   obtaining a copy of this software and associated documentation
@@ -27,46 +26,43 @@
  * ----------------------------------------------------------------------- */
 
 /*
- * suffix_number.c
+ * x86/bitops.h
  *
- * Convert a string of a number with potential SI suffix to int-type
+ * Simple bitwise operations
  */
 
-#include <stdlib.h>
-#include <suffix_number.h>
+#ifndef _X86_BITOPS_H
+#define _X86_BITOPS_H
 
-/* Get a value with a potential suffix (k/m/g/t/p/e) */
-unsigned long long suffix_number(const char *str)
+static inline void set_bit(long __bit, void *__bitmap)
 {
-    char *ep;
-    unsigned long long v;
-    int shift;
-
-    v = strtoull(str, &ep, 0);
-    switch (*ep | 0x20) {
-    case 'k':
-	shift = 10;
-	break;
-    case 'm':
-	shift = 20;
-	break;
-    case 'g':
-	shift = 30;
-	break;
-    case 't':
-	shift = 40;
-	break;
-    case 'p':
-	shift = 50;
-	break;
-    case 'e':
-	shift = 60;
-	break;
-    default:
-	shift = 0;
-	break;
-    }
-    v <<= shift;
-
-    return v;
+    asm volatile("bts %1,%0"
+		 : "+m" (*(unsigned char *)__bitmap)
+		 : "Ir" (__bit) : "memory");
 }
+
+static inline void clr_bit(long __bit, void *__bitmap)
+{
+    asm volatile("btc %1,%0"
+		 : "+m" (*(unsigned char *)__bitmap)
+		 : "Ir" (__bit) : "memory");
+}
+
+static inline _Bool __purefunc test_bit(long __bit, const void *__bitmap)
+{
+    _Bool __r;
+
+#ifdef __GCC_ASM_FLAG_OUTPUTS__
+    asm("bt %2,%1"
+	: "=@ccc" (__r)
+	: "m" (*(const unsigned char *)__bitmap), "Ir" (__bit));
+#else
+    asm("bt %2,%1; setc %0"
+	: "=qm" (__r)
+	: "m" (*(const unsigned char *)__bitmap), "Ir" (__bit));
+#endif
+
+    return __r;
+}
+
+#endif /* _X86_BITOPS_H */

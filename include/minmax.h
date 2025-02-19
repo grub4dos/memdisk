@@ -1,7 +1,6 @@
 /* ----------------------------------------------------------------------- *
  *
- *   Copyright 2007-2009 H. Peter Anvin - All Rights Reserved
- *   Copyright 2009 Intel Corporation; author: H. Peter Anvin
+ *   Copyright 2004-2008 H. Peter Anvin - All Rights Reserved
  *
  *   Permission is hereby granted, free of charge, to any person
  *   obtaining a copy of this software and associated documentation
@@ -26,47 +25,18 @@
  *
  * ----------------------------------------------------------------------- */
 
+#ifndef _MINMAX_H
+#define _MINMAX_H
+
 /*
- * suffix_number.c
- *
- * Convert a string of a number with potential SI suffix to int-type
+ * minmax.h: Type-independent safe min/max macros
  */
 
-#include <stdlib.h>
-#include <suffix_number.h>
+#define min(x,y) ({ __typeof(x) xx = (x); \
+                    __typeof(y) yy = (y); \
+                    xx < yy ? xx : yy; })
+#define max(x,y) ({ __typeof(x) xx = (x); \
+                    __typeof(y) yy = (y); \
+                    xx > yy ? xx : yy; })
 
-/* Get a value with a potential suffix (k/m/g/t/p/e) */
-unsigned long long suffix_number(const char *str)
-{
-    char *ep;
-    unsigned long long v;
-    int shift;
-
-    v = strtoull(str, &ep, 0);
-    switch (*ep | 0x20) {
-    case 'k':
-	shift = 10;
-	break;
-    case 'm':
-	shift = 20;
-	break;
-    case 'g':
-	shift = 30;
-	break;
-    case 't':
-	shift = 40;
-	break;
-    case 'p':
-	shift = 50;
-	break;
-    case 'e':
-	shift = 60;
-	break;
-    default:
-	shift = 0;
-	break;
-    }
-    v <<= shift;
-
-    return v;
-}
+#endif /* _MINMAX_H */

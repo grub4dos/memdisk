@@ -1,1 +1,3 @@
-#include "../com32/lib/strtoull.c"
+#define TYPE unsigned long long
+#define NAME strtoull
+#include "strtox.c"
